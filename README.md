@@ -2,110 +2,86 @@
 
 **Indoor Air Quality Analytics · Business Intelligence · Decision Support**
 
-A bachelor's thesis project from the **Department of Informatics & Telematics, Harokopio University of Athens (2026)**. It combines historical indoor-air-quality (IAQ) telemetry with university timetables to help staff explore CO₂ pressure patterns and review potential room or ventilation actions.
+An end-to-end bachelor thesis project from **Harokopio University of Athens (2026)**, combining historical CO₂ telemetry, university timetables and room metadata to produce evidence-aware operational recommendations.
 
-**[Explore the university-hosted report](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html)** · **[See the results](#results--screenshots)** · **[How it works](#architecture--data-flow)**
+**[🌐 Explore the official university-hosted report](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html)** · **[Architecture](#architecture--pipeline)** · **[Results](#results-gallery)**
 
-**[Open the published SmartCampus dashboard and results on the university website](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html)**
+![SmartCampus Omirou BI report — real dashboard screenshot](assets/report-overview.webp)
 
-*The university-hosted report is the official public visual demonstration of this thesis.*
+*Actual saved output from the thesis. The full interactive HTML report is hosted by Harokopio University at the link above.*
 
 ## At a glance
 
-| | |
+| 11 IAQ sensors | 4,342 telemetry source files | BI & clustering | Human-reviewed recommendations |
+|:---:|:---:|:---:|:---:|
+| Historical room data | Original project archive | Course, room and semester analysis | Availability, capacity and evidence checks |
+
+## Results gallery
+
+These images are taken from the thesis' **actual generated report**, not mock-ups or a newly executed system.
+
+| Recommendations & CO₂ pressure | Alternative room evidence |
 |---|---|
-| **Sources** | Academic calendar, class timetables, room metadata and ThingsBoard sensor telemetry |
-| **Scope** | Historical readings from **11 IAQ sensors** |
-| **Data** | **4,342 raw telemetry files** retained in the original local project |
-| **Analysis** | Data validation, teaching-session metrics, CO₂ Pressure Score, descriptive clustering |
-| **Outputs** | Static bilingual HTML report, BI tables and CSV/JSON exports |
-| **Purpose** | Evidence-aware *recommendations for human review* — not automatic room scheduling |
+| ![Historical room recommendations and pressure score cards](assets/recommendations.webp) | ![Candidate room availability, data coverage and scores](assets/candidate-rooms.webp) |
+| **Explore & Compare** | **Cross-semester trends** |
+| ![Room and course comparisons in the dashboard](assets/explore-compare.webp) | ![Historical CO₂ pressure comparisons between semesters](assets/semester-trends.webp) |
+
+### Ventilation review
+
+![Ventilation review section from the generated report](assets/ventilation-panel.webp)
+
+The report highlights rooms that may warrant further investigation, rather than making automated scheduling or ventilation decisions.
 
 ## The problem
 
-A high CO₂ reading on its own does not identify which course was running, whether the measurement is representative, or whether a different room might be worth investigating. The system joins sensor readings to **actual teaching sessions**, considers measurement coverage, and builds a traceable, comparative view of rooms and courses.
+An isolated CO₂ reading tells us little about **which class was taking place**, whether the measurement is representative or whether another room merits examination. The project aligns time-stamped sensor observations with academic calendars and teaching sessions, validates measurement coverage, and turns historical data into interpretable BI outputs.
 
-## Architecture & data flow
+## Architecture & pipeline
 
-```mermaid
-flowchart TD
-  A[Academic calendar & timetables] --> C[Session-level metrics]
-  B[ThingsBoard CO₂ telemetry] --> D[Validation & cleaning]
-  D --> C
-  C --> E[CO₂ Pressure Score]
-  E --> F[BI summaries & descriptive clustering]
-  F --> G[Evidence-aware recommendations]
-  G --> H[HTML report & CSV/JSON exports]
-```
+<p align="center">
+  <img src="assets/pipeline-architecture.webp" alt="SmartCampus end-to-end data processing architecture" width="440">
+</p>
 
-The Python pipeline is organised around seven stages:
+1. **Academic context:** build validated teaching sessions from calendars, Excel timetables and room metadata.
+2. **Telemetry:** ingest/read historical ThingsBoard observations and validate timestamps, sensor mappings and coverage.
+3. **Session metrics:** align observations to classes; calculate CO₂ percentiles, duration above the selected threshold, cumulative pressure and optional baseline.
+4. **CO₂ Pressure Score:** combine complementary indicators into a relative, comparative metric.
+5. **Business intelligence:** aggregate by course, room and semester; use K-means for *descriptive* pressure-profile clustering.
+6. **Recommendations:** evaluate alternative rooms using availability, capacity, room type and sufficient supporting data.
+7. **Reporting:** export structured CSV/JSON and a bilingual static HTML report; validate pipeline outputs.
 
-1. **Academic context:** validate calendars and manually reviewed timetable inputs; map sessions to rooms and time slots.
-2. **Sensor telemetry:** retrieve or read historical ThingsBoard data; validate timestamps, values and sensor-to-room mappings.
-3. **Session metrics:** align CO₂ observations with scheduled sessions and compute coverage, percentiles, minutes above a threshold, cumulative exposure and optional pre-session baseline.
-4. **Pressure Score:** combine complementary CO₂ indicators into a relative 0–100 score for comparison.
-5. **BI & clustering:** aggregate course, room and semester summaries; descriptively group similar pressure profiles.
-6. **Recommendations:** review alternatives using pressure indicators, availability, capacity, room type and evidence quality.
-7. **Reporting & validation:** generate a static HTML report and structured CSV/JSON exports, with validation checks.
+### Scoring and recommendation logic
 
-## Results & screenshots
+| CO₂ Pressure Score | Evidence-aware recommendation logic |
+|---|---|
+| ![Pressure score components and fallback when baseline is unavailable](assets/pressure-score-flow.webp) | ![Room recommendation decision flow including evidence checks](assets/recommendation-decision-flow.webp) |
 
-### Evidence-aware room recommendations
+With a pre-session baseline, the documented score is `100 × (0.30R + 0.25M + 0.25Q + 0.20A)`. The components represent relative baseline rise (R), time over the operational threshold (M), p95 concentration (Q) and cumulative exceedance (A).
 
-[View the university-hosted recommendation cards and evidence](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html)
+### Saved validation evidence
 
-Candidate rooms are presented with availability and supporting telemetry evidence, rather than as automatic assignments.
+![Recorded successful report generation and pipeline checks](assets/pipeline-validation.webp)
 
-### Explore & compare
+*Recorded validation output from the completed thesis. No code was executed when preparing this showcase.*
 
-[Explore the published report](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html)
+## Technology stack
 
-The report supports side-by-side exploration of historical room/course pressure indicators.
+**Python · pandas · NumPy · scikit-learn · ThingsBoard API · CSV/JSON · Excel · Data Validation · K-means · Business Intelligence · HTML Reporting**
 
-### Saved pipeline validation
+## Scientific scope & limitations
 
-The thesis documents validation checks for report generation, metrics, clustering and recommendations. No new run was performed for this showcase.
+- The **CO₂ Pressure Score** is a comparative heuristic, **not** an occupancy counter, attendance measure or health classification.
+- The **1,000 ppm** threshold is a project-specific operational analysis threshold, not a universal safety limit.
+- **Clustering is descriptive**, not a prediction of health risk.
+- Recommendations are **suggestions for human review**, not automatic timetable changes or ventilation controls.
+- Historical patterns, telemetry gaps and room requirements affect interpretation.
 
-The thesis documents a successful report-generation and validation run. **This repository's preparation did not re-run the pipeline.**
+## Repository scope
 
-<details>
-<summary><strong>Technical deep dive — scoring and recommendation logic</strong></summary>
-
-The **CO₂ Pressure Score** combines duration above the analysis threshold (M), high-end concentration (Q, based on p95), cumulative pressure (A), and — when available — the increase over a pre-session baseline (R). When a baseline is available, the documented formula is:
-
-`Score = 100 × (0.30R + 0.25M + 0.25Q + 0.20A)`
-
-Recommendation decisions include an **evidence guard** so a room with insufficient measurements is not treated as a strong alternative.
-
-</details>
-
-## Technologies & engineering work
-
-**Python**, **pandas**, **NumPy**, **scikit-learn**, **ThingsBoard API**, **CSV/JSON**, **Excel timetable inputs**, static **HTML reporting**, data quality checks and descriptive clustering.
-
-The engineering focus is on **reproducible data-processing stages, validation, traceability, interpretation of time-series metrics and clear presentation of decision support**.
-
-## Scope & limitations
-
-- **CO₂ is not an attendance or people-counting measure.** The pressure score is a comparative heuristic, not a health/safety grade or a direct occupancy estimate.
-- **1,000 ppm is an operational analysis threshold in this thesis**, not a universal health or safety limit.
-- **Clustering is descriptive.** Groups are not automatically interpreted as risk categories.
-- **Room suggestions require human judgement.** They are not live room assignments, automated timetable changes or ventilation control.
-- **Historical observations are context-dependent.** Room availability, teaching requirements and sensor coverage affect the interpretation of candidates.
-
-## Repository contents
-
-This initial **portfolio showcase** contains a documented project overview and a direct link to the university-published report. **The source code and raw telemetry are not included in this package.** Selected source modules can be added in a subsequent, separately reviewed release after screening for credentials, private data and institutional restrictions.
-
-```text
-smartcampus-omirou-bi/
-└── README.md
-```
-
-*The documented figures from the thesis can be added to the repository when binary-asset upload is available.*
+This repository is a **documentation and results showcase** based on a completed academic thesis. It contains the overview and selected genuine thesis figures. **The original Python source code and raw telemetry are not included**; they would require separate security, privacy and publication review before any public release.
 
 ## Credits
 
-**Antonis Rouseas** — Bachelor thesis (2026), Department of Informatics & Telematics, Harokopio University of Athens. Supervised by **Dr. Eirini Liotou**.
+**Antonis Rouseas** — Bachelor Thesis, Department of Informatics & Telematics, Harokopio University of Athens (2026). Supervised by **Dr. Eirini Liotou**.
 
-[University-hosted report](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html) · [LinkedIn](https://www.linkedin.com/in/antonis-rouseas/) · [GitHub profile](https://github.com/jerrybananas)
+[Official university-hosted report](https://smartcampus.hua.gr/reports/smartcampus-recommendations.html) · [LinkedIn](https://www.linkedin.com/in/antonis-rouseas/) · [GitHub profile](https://github.com/jerrybananas)
